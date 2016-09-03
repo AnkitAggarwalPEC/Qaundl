@@ -13,7 +13,7 @@ metaDictionary = Dict{UTF8String,Dict{UTF8String,Any}}()
 function to return the GET arguements for downloading the meta data for
 the datasets in the particular database defined by database_code
 """
-function getqueryargs(database_code:: AbstractString , per_page::Int = 100 ,
+function getqueryargs(database_code:: AbstractString; per_page::Int = 100 
  sort_by="id" , page::Int = 1 )
 
     queryArgs = Dict{Any , Any}("database_code" => database_code,
@@ -120,13 +120,20 @@ function storealldatasetscode(code::AbstractString)
         error("Please pass a valid code!")
     end
     metaDict = getmetadata(code)
-
+    final_path = getbaseurl() * "v3/datasets.json/"
+    
     if metaDict == false
         error(code * "data doesn't exist in database !!!")
     else 
         total_pages = metaDict["total_pages"]
         for i = 1:total_pages
-
+            resp = get(final_path , query = getqueryargs(code , page = i))
+            
+            if resp.status != 200
+                error("Error in processing the query")
+            else
+                
+            end
         end
 end 
 
