@@ -3,11 +3,16 @@ import Requests
 using Requests.get
 using Requests.Response
 
+using Mongo
 """
 global definition of dictionary to store metadata per database
 """
 metaDictionary = Dict{UTF8String,Dict{UTF8String,Any}}()
-
+"""
+global definition of mongodb client
+"""
+client = MongoClient()
+securityCollection = MongoCollection(client,"aimsqaunt","security") 
 
 """
 function to return the GET arguements for downloading the meta data for
@@ -111,8 +116,19 @@ function getlistofdatasets(code::AbstractString)
     return nothing
 end
 
+function checkifexistsinmongodbdocument(collection:: MongoCollection , data :: Dict{UTF8String,Any} )
+    cursor = find(collection , data)
+    count = 0
+    for o in cursor
+        count = count + 1
+    end
+    if count == 0
+        return false
+    else
+        return true
+end
 """
-funciton to extract all the datasets code from metadata
+function to extract all the datasets code from metadata
 """
 function storealldatasetscode(code::AbstractString)
 
@@ -132,7 +148,20 @@ function storealldatasetscode(code::AbstractString)
             if resp.status != 200
                 error("Error in processing the query")
             else
-                
+                dataArray = resp["datasets"]
+                len = length(dataArray)
+                for j = 1:len
+                    dataset  = dataArray[j]
+                    tempDict = {"dataset_code"=>dataset["dataset_code"] ,
+                                "database_code" => dataset["database_code"]
+                                "type" => dataset["type"] }
+                    if checkifexistsinmongodbdocument(securityCollection,tempDict) == false
+                        insert(securityCollection , dataset)
+                    else
+                        ##Need to complete it
+                        ##updateit()
+                    end            
+                end
             end
         end
 end 
