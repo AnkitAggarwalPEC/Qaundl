@@ -115,18 +115,18 @@ function getlistofdatasets(code::AbstractString)
     storealldatasetscode(code)
     return nothing
 end
-
+"""
+function to check if data exists in mongodb document
+"""
 function checkifexistsinmongodbdocument(collection:: MongoCollection , data :: Dict{UTF8String,Any} )
-    cursor = find(collection , data)
-    count = 0
-    for o in cursor
-        count = count + 1
-    end
-    if count == 0
+    dataCount = count(collection , data)
+
+    if dataCount == 0
         return false
     else
         return true
 end
+
 """
 function to extract all the datasets code from metadata
 """
@@ -158,8 +158,18 @@ function storealldatasetscode(code::AbstractString)
                     if checkifexistsinmongodbdocument(securityCollection,tempDict) == false
                         insert(securityCollection , dataset)
                     else
-                        ##Need to complete it
-                        ##updateit()
+
+                        update
+                        (
+                            securityCollection,
+                            find(
+                                securityCollection ,
+                                query(
+                                    tempDict
+                                    )
+                                ),
+                            {"\$set" => dataset}
+                        )
                     end            
                 end
             end
