@@ -18,7 +18,7 @@ securityCollection = MongoCollection(client,"aimsqaunt","security")
 function to return the GET arguements for downloading the meta data for
 the datasets in the particular database defined by database_code
 """
-function getqueryargs(database_code:: AbstractString; per_page::Int = 100 
+function getqueryargs(database_code:: AbstractString; per_page::Int = 100 ,
  sort_by="id" , page::Int = 1 )
 
     queryArgs = Dict{Any , Any}("database_code" => database_code,
@@ -33,7 +33,7 @@ end
 """
 function to insert metadata per database
 """
-function insertmetadata(database_code::UTF8String , data :: Dict{UTF8String,Any})
+function insertmetadata(database_code::AbstractString , data :: Dict{UTF8String,Any})
     metaDictionary[database_code] = data
 
     #To check if insertion is successful
@@ -51,7 +51,7 @@ end
 """
 function to get the metadata from the metadata database
 """
-function getmetadata(code::UTF8String) 
+function getmetadata(code::AbstractString) 
 
    temp = get(metaDictionary , database_code , 0)
 
@@ -112,7 +112,7 @@ function getlistofdatasets(code::AbstractString)
 
     insertmetadata(code , data["meta"])
 
-    storealldatasetscode(code)
+    #storealldatasetscode(code)
     return nothing
 end
 """
@@ -125,8 +125,8 @@ function checkifexistsinmongodbdocument(collection:: MongoCollection , data :: D
         return false
     else
         return true
+    end
 end
-
 """
 function to extract all the datasets code from metadata
 """
@@ -152,9 +152,9 @@ function storealldatasetscode(code::AbstractString)
                 len = length(dataArray)
                 for j = 1:len
                     dataset  = dataArray[j]
-                    tempDict = {"dataset_code"=>dataset["dataset_code"] ,
-                                "database_code" => dataset["database_code"]
-                                "type" => dataset["type"] }
+                    tempDict = ("dataset_code"=>dataset["dataset_code"] ,
+                                "database_code" => dataset["database_code"],
+                                "type" => dataset["type"] )
                     if checkifexistsinmongodbdocument(securityCollection,tempDict) == false
                         insert(securityCollection , dataset)
                     else
@@ -168,12 +168,13 @@ function storealldatasetscode(code::AbstractString)
                                     tempDict
                                     )
                                 ),
-                            {"\$set" => dataset}
+                            ("\$set" => dataset)
                         )
                     end            
                 end
             end
         end
+    end
 end 
 
 
@@ -203,10 +204,6 @@ function setauthtoken(token::AbstractString)
     return nothing
 end
 
-
-"""
-    Some random code
-"""
-println("Starting the quandl")
-setauthtoken("JHKaDwdS-RtM26RxPauV")
+#println("Starting the quandl")
+#setauthtoken("JHKaDwdS-RtM26RxPauV")
 getlistofdatasets("NSE")
