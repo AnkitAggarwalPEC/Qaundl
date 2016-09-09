@@ -127,6 +127,31 @@ function checkifexistsinmongodbdocument(collection:: MongoCollection , data :: D
         return true
     end
 end
+
+"""
+function to insert security data
+The data is not available in Quandl Dataset for the started trading day and ended trading day , So if another data source is added then its needed to modified
+"""
+function insertintosecuritydocument(data :: Dict{AbstractString,Any})
+
+    securityID = get(data , "id" , "NULL")
+    ISIN = get(data , "ISIN" , "NULL")
+    ticker = get(data , "dataset_code" , "NULL")
+    exchange = get(data , "database_code" , "NULL")
+    description = get(data , "description" , "NULL")
+    name = get(data , "name","NULL")
+    securityData = Dict{Any , Any}("securityID" => securityID,
+        "ISIN" => ISIN,
+        "ticker" => ticker,
+        "exchange" => exchange,
+        "description" => description,
+        "name" => name)
+    insert(securityCollection , securityData)
+
+
+end
+
+
 """
 function to extract all the datasets code from metadata
 """
@@ -148,29 +173,23 @@ function storealldatasetscode(code::AbstractString)
             if resp.status != 200
                 error("Error in processing the query")
             else
-                dataArray = resp["datasets"]
+                respJSON = Requests.json(resp)
+                dataArray = respJSON["datasets"]
                 len = length(dataArray)
                 for j = 1:len
                     dataset  = dataArray[j]
-                    tempDict = ("dataset_code"=>dataset["dataset_code"] ,
-                                "database_code" => dataset["database_code"],
-                                "type" => dataset["type"] )
-                    if checkifexistsinmongodbdocument(securityCollection,tempDict) == false
-                        insert(securityCollection , dataset)
+                    database_code = dataset["database_code"]
+                    dataset_code = dataset["dataset_code"]
+                    getDataURL = getbaseurl() *  "v3/datasets/" *database_code * "/" * dataset_code *".json" 
+                    queryArgs = Dict{Any , Any}(api_key => getapikey())
+                    dataResp = get(getDataURL , query = queryArgs)
+                    if dataResp.status != 200
+                        error("Error in processing the query dataset_code query")
                     else
-
-                        update
-                        (
-                            securityCollection,
-                            find(
-                                securityCollection ,
-                                query(
-                                    tempDict
-                                    )
-                                ),
-                            ("\$set" => dataset)
-                        )
-                    end            
+                        dataRespJSON = Requests.json(dataResp)
+                        insertintosecuritydocument(dataRespJSON["dataset"])
+                        
+                    end
                 end
             end
         end
