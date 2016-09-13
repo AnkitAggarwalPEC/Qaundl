@@ -51,7 +51,7 @@ end
 """
 function to get the metadata from the metadata database
 """
-function getmetadata(code::AbstractString) 
+function getmetadata(database_code::AbstractString) 
 
    temp = get(metaDictionary , database_code , 0)
 
@@ -112,7 +112,10 @@ function getlistofdatasets(code::AbstractString)
 
     insertmetadata(code , data["meta"])
 
-    #storealldatasetscode(code)
+    #println(data["meta"])
+
+    #println ("Reached here")
+    storealldatasetscode(code)
     return nothing
 end
 """
@@ -132,7 +135,7 @@ end
 function to insert security data
 The data is not available in Quandl Dataset for the started trading day and ended trading day , So if another data source is added then its needed to modified
 """
-function insertintosecuritydocument(data :: Dict{AbstractString,Any})
+function insertintosecuritydocument(data :: Dict{UTF8String,Any})
 
     securityID = get(data , "id" , "NULL")
     ISIN = get(data , "ISIN" , "NULL")
@@ -184,20 +187,27 @@ function storealldatasetscode(code::AbstractString)
                 len = length(dataArray)
                 for j = 1:len
                     dataset  = dataArray[j]
-                    database_code = dataset["database_code"]
-                    dataset_code = dataset["dataset_code"]
-                    getDataURL = getbaseurl() *  "v3/datasets/" *database_code * "/" * dataset_code *".json" 
-                    queryArgs = Dict{Any , Any}(api_key => getapikey())
-                    dataResp = get(getDataURL , query = queryArgs)
-                    if dataResp.status != 200
-                        error("Error in processing the query dataset_code query")
-                    else
-                        dataRespJSON = Requests.json(dataResp)
-                        insertintosecuritydocument(dataRespJSON["dataset"])
+                    insertintosecuritydocument(dataset)
+                    #database_code = dataset["database_code"]
+                    #dataset_code = dataset["dataset_code"]
+                    #getDataURL = getbaseurl() *  "v3/datasets/" *database_code * "/" * dataset_code *".json" 
+                    #queryArgs = Dict{Any , Any}("api_key" => getapikey())
+                    #dataResp = get(getDataURL , query = queryArgs)
+                    #println(dataResp)
+                    println(dataset)
+                    #println ("Reached here in loop")
+                    #if dataResp.status != 200
+                     #   error("Error in processing the query dataset_code query")
+                    #else
+                    #    dataRespJSON = Requests.json(dataResp)
+                    #   println(dataRespJSON)
+                        #println(dataRespJSON["dataset"])
+                    
                         
-                    end
+                    #end
                 end
             end
+            break
         end
     end
 end 
