@@ -138,14 +138,20 @@ function insertintosecuritydocument(data :: Dict{AbstractString,Any})
     ISIN = get(data , "ISIN" , "NULL")
     ticker = get(data , "dataset_code" , "NULL")
     exchange = get(data , "database_code" , "NULL")
-    description = get(data , "description" , "NULL")
     name = get(data , "name","NULL")
+    frequency = get(data , "frequency" , "NULL")
+    dataType = get(data , "type" , "NULL")
+    source  = ["Quandl"]
+
+    dataDict = Dict{Any , Any}("dataType" => dataType,
+                                "frequency" => frequency,
+                                "source" => source)
     securityData = Dict{Any , Any}("securityID" => securityID,
         "ISIN" => ISIN,
         "ticker" => ticker,
         "exchange" => exchange,
-        "description" => description,
-        "name" => name)
+        "name" => name,
+        "dataSources" => dataDict)
     insert(securityCollection , securityData)
 
 
