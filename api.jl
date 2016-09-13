@@ -207,7 +207,6 @@ function storealldatasetscode(code::AbstractString)
                     #end
                 end
             end
-            break
         end
     end
 end 
