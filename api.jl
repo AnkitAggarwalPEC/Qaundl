@@ -208,7 +208,7 @@ function storealldatasetscode(code::AbstractString)
                         error("Error in processing the query dataset_code query")
                     else
                         dataRespJSON = Requests.json(dataResp)
-                        
+                        handlesecuritydata(dataRespJSON["dataset"])    
                         
                     end
                 end
@@ -217,7 +217,45 @@ function storealldatasetscode(code::AbstractString)
     end
 end 
 
+"""
+function to handle Data for each security
+"""
+function handlesecuritydata(data :: Dict{UTF8String,Any})
+    securityID = get(data , "id" , "NULL")
+    source = Dict{Any ,Any}("name" => "Quandl" , 
+                            "id" => securityID)
+    dataToInsert = filterdata(data["data"])
 
+    #insertindatadocument(dataToInsert)
+
+end
+
+"""
+function to filter data base on year
+"""
+function filterdata(data :: Array{Any , 1})
+    length  = length(data)
+    dataPerYear = Dict{int, Array{Any , 1}}
+    previousDate = 0
+    arr = Array{Any , 1}[]
+    for i = 1 : length
+        dataRow = data[i]
+        date = parse(Int , (split(dataRow[1] , "-")[1]) )
+        if date == previousDate
+           push!(arr , dataRow) 
+        else
+            if previousDate == 0
+                nothing
+            else
+                insert!(dataPerYear ,previousDate , arr)
+            end
+            arr = Array{Any , 1}[]
+            previousDate = date
+            push!(arr , dataRow)
+        end    
+    end
+    return dataPerYear
+end
 """
 function to set the Quandl API key
 """
