@@ -144,11 +144,12 @@ function insertintosecuritydocument(data :: Dict{UTF8String,Any})
     name = get(data , "name","NULL")
     frequency = get(data , "frequency" , "NULL")
     dataType = get(data , "type" , "NULL")
-    source  = ["Quandl"]
+    source  = "Quandl"
 
-    dataDict = Dict{Any , Any}("dataType" => dataType,
-                                "frequency" => frequency,
-                                "source" => source)
+    dataDict = Dict{Any , Any}(source => Dict{Any,Any}("dataType" => dataType,
+                                            "frequency" => frequency
+                                                )
+                              )
     securityData = Dict{Any , Any}("securityID" => securityID,
         "ISIN" => ISIN,
         "ticker" => ticker,
@@ -187,24 +188,22 @@ function storealldatasetscode(code::AbstractString)
                 len = length(dataArray)
                 for j = 1:len
                     dataset  = dataArray[j]
-                    insertintosecuritydocument(dataset)
-                    #database_code = dataset["database_code"]
-                    #dataset_code = dataset["dataset_code"]
-                    #getDataURL = getbaseurl() *  "v3/datasets/" *database_code * "/" * dataset_code *".json" 
-                    #queryArgs = Dict{Any , Any}("api_key" => getapikey())
-                    #dataResp = get(getDataURL , query = queryArgs)
-                    #println(dataResp)
                     println(dataset)
+                    insertintosecuritydocument(dataset)
+                    database_code = dataset["database_code"]
+                    dataset_code = dataset["dataset_code"]
+                    getDataURL = getbaseurl() *  "v3/datasets/" *database_code * "/" * dataset_code *".json" 
+                    queryArgs = Dict{Any , Any}("api_key" => getapikey())
+                    dataResp = get(getDataURL , query = queryArgs)
+                    #println(dataResp)
                     #println ("Reached here in loop")
-                    #if dataResp.status != 200
-                     #   error("Error in processing the query dataset_code query")
-                    #else
-                    #    dataRespJSON = Requests.json(dataResp)
-                    #   println(dataRespJSON)
-                        #println(dataRespJSON["dataset"])
-                    
+                    if dataResp.status != 200
+                        error("Error in processing the query dataset_code query")
+                    else
+                        dataRespJSON = Requests.json(dataResp)
                         
-                    #end
+                        
+                    end
                 end
             end
         end
