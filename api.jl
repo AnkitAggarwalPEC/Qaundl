@@ -141,14 +141,21 @@ function insertintosecuritydocument(data :: Dict{UTF8String,Any})
     ISIN = get(data , "ISIN" , "NULL")
     ticker = get(data , "dataset_code" , "NULL")
     exchange = get(data , "database_code" , "NULL")
-    name = get(data , "name","NULL")
     frequency = get(data , "frequency" , "NULL")
     dataType = get(data , "type" , "NULL")
-    source  = "Quandl"
+    sourceName  = "Quandl"
+    QuandlDict = Dict{Any,Any}("name" => sourceName,
+                               "id" => get(data , "id" , "NULL"),
+                               "newest_available_date" => get(data , "newest_available_date" , "NULL"),
+                               "oldest_available_date" => get(data , "oldest_available_date" , "NULL"),
+                               "refreshed_at" => get(data ,"refreshed_at"  , "NULL"),
+                               "description" => get(data , "description" , "NULL"),
+                               "dataset_code" => get(data , "dataset_code" , "NULL"),
+                               "database_code" => get(data , "database_code" , "NULL"))
 
-    dataDict = Dict{Any , Any}(source => Dict{Any,Any}("dataType" => dataType,
-                                            "frequency" => frequency
-                                                )
+    dataDict = Dict{Any , Any}("dataType" => dataType,
+                                "frequency" => frequency
+                                "source" => QuandlDict
                               )
     securityData = Dict{Any , Any}("securityID" => securityID,
         "ISIN" => ISIN,
@@ -197,7 +204,7 @@ function storealldatasetscode(code::AbstractString)
                     dataResp = get(getDataURL , query = queryArgs)
                     #println(dataResp)
                     #println ("Reached here in loop")
-                    if dataResp.status != 200
+                    if dataResp.status != 200   
                         error("Error in processing the query dataset_code query")
                     else
                         dataRespJSON = Requests.json(dataResp)
