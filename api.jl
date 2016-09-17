@@ -14,6 +14,7 @@ global definition of mongodb client
 client = MongoClient()
 securityCollection = MongoCollection(client,"aimsqaunt","security") 
 
+dataCollection = MongoCollection(client , "aimsquant","data")
 """
 function to return the GET arguements for downloading the meta data for
 the datasets in the particular database defined by database_code
@@ -218,15 +219,39 @@ function storealldatasetscode(code::AbstractString)
 end 
 
 """
+function to insert in data document
+"""
+function insertindatadocument(securityID::AbstractString,column, data :: Dict{Int , Array{Any , 1}})
+
+    for k in keys(data)
+        data = get(data , k, "NULL")
+        if data == "NULL"
+            println("Something Wrong While inserting Data")
+        else
+            year  = k 
+            quandlData = Dict{Any ,Any}("priority" => 1,
+                                        "source" => Dict{Any,Any}("name" => "Quandl","id" => securityID),
+                                        "column" =>column,
+                                        "data" => data
+                                        )
+
+            insert(dataCollection , quandlData)
+        end
+        
+    end
+end
+
+"""
 function to handle Data for each security
 """
 function handlesecuritydata(data :: Dict{UTF8String,Any})
     securityID = get(data , "id" , "NULL")
+    column = get(data ,"column", "NULL")
     source = Dict{Any ,Any}("name" => "Quandl" , 
                             "id" => securityID)
     dataToInsert = filterdata(data["data"])
 
-    #insertindatadocument(dataToInsert)
+    #insertindatadocument(securityID,column,dataToInsert)
 
 end
 
@@ -235,7 +260,7 @@ function to filter data base on year
 """
 function filterdata(data :: Array{Any , 1})
     length  = length(data)
-    dataPerYear = Dict{int, Array{Any , 1}}
+    dataPerYear = Dict{Int, Array{Any , 1}}
     previousDate = 0
     arr = Array{Any , 1}[]
     for i = 1 : length
