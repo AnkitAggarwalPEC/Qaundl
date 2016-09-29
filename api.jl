@@ -155,14 +155,14 @@ function insertintosecuritydocument(data :: Dict{UTF8String,Any})
                                "database_code" => get(data , "database_code" , "NULL"))
 
     dataDict = Dict{Any , Any}("dataType" => dataType,
-                                "frequency" => frequency
+                                "frequency" => frequency,
                                 "source" => QuandlDict
                               )
     securityData = Dict{Any , Any}("securityID" => securityID,
         "ISIN" => ISIN,
         "ticker" => ticker,
         "exchange" => exchange,
-        "name" => name,
+        "name" => sourceName,
         "dataSources" => dataDict)
     insert(securityCollection , securityData)
 
@@ -234,8 +234,8 @@ function insertindatadocument(securityID::AbstractString,column, data :: Dict{In
                                         "column" =>column,
                                         "data" => data
                                         )
-
-            insert(dataCollection , quandlData)
+            toInsertDict = Dict{Any ,Any}("securityID" => securityID , "Year" => year , "data" => quandlData)
+            insert(dataCollection , toInsertDict)
         end
         
     end
